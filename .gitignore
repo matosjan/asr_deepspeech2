@@ -2,7 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+runs/
+train.sbatch
 # C extensions
 *.so
 

@@ -1,0 +1,4 @@
+_target_: src.model.DeepSpeech2
+n_feats: 128
+gru_layers_num: 5
+gru_hidden_size: 512

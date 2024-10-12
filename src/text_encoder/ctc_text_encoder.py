@@ -12,6 +12,7 @@ import torch
 
 class CTCTextEncoder:
     EMPTY_TOK = ""
+    EMPTY_IND = 0
 
     def __init__(self, alphabet=None, **kwargs):
         """
@@ -59,7 +60,16 @@ class CTCTextEncoder:
         return "".join([self.ind2char[int(ind)] for ind in inds]).strip()
 
     def ctc_decode(self, inds) -> str:
-        pass  # TODO
+        decoded = []
+        last_char_ind = self.EMPTY_IND
+        for ind in inds:
+            if last_char_ind == ind:
+                continue
+            if ind != self.EMPTY_IND:
+                decoded.append(self.ind2char[ind])
+            last_char_ind = ind
+        
+        return "".join(decoded)
 
     @staticmethod
     def normalize_text(text: str):
