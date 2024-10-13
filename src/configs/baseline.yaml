@@ -2,7 +2,7 @@ defaults:
   - model: ds2
   - writer: wandb
   - metrics: example
-  - datasets: libri_all
+  - datasets: onebatchtest
   - dataloader: example
   - transforms: example_only_instance
   - _self_
@@ -33,4 +33,5 @@ trainer:
   save_period: 5 # checkpoint each save_period epochs in addition to the best epoch
   early_stop: ${trainer.n_epochs} # epochs for early stopping
   save_dir: "saved"
+  from_pretrained: /home/aamatosyan/DLA/hw_asr_ds2/pytorch_project_template/saved/plain_ds2_all_libri_5layers/model_best.pth
   seed: 1

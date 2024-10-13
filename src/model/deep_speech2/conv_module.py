@@ -1,14 +1,15 @@
 import torch
-from torch import nn, Tensor
+from torch import Tensor, nn
+
 from src.model.deep_speech2.utils import after_conv, apply_mask
 
-class ConvModule(nn.Module):
 
+class ConvModule(nn.Module):
     def __init__(self, layers: nn.Sequential) -> None:
         super().__init__()
 
         self.layers = layers
-    
+
     def forward(self, x, lengths):
         for layer in self.layers:
             x = layer(x)

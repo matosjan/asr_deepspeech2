@@ -68,7 +68,7 @@ class CTCTextEncoder:
             if ind != self.EMPTY_IND:
                 decoded.append(self.ind2char[ind])
             last_char_ind = ind
-        
+
         return "".join(decoded)
 
     @staticmethod
