@@ -3,7 +3,8 @@ from string import ascii_lowercase
 
 import torch
 from collections import defaultdict
-from pyctcdecode import Alphabet, BeamSearchDecoderCTC
+from pyctcdecode import Alphabet, BeamSearchDecoderCTC, build_ctcdecoder
+import os
 
 
 # Note: think about metrics and encoder
@@ -15,8 +16,22 @@ class CTCTextEncoder:
     EMPTY_TOK = ""
     EMPTY_IND = 0
 
+    def _lm_and_vocab_tolower(self, pretrained_lm_path, lower_lm_path, vocab_path):
+        unigrams = []
+        with open(vocab_path) as f:
+            for char in f.read().strip().split("\n"):
+                unigrams.append(char.lower())
 
-    def __init__(self, alphabet=None, beam_size=None, **kwargs):
+        if os.path.exists(lower_lm_path):
+            return unigrams
+        with open(pretrained_lm_path, 'r') as f1:
+                with open(lower_lm_path, ) as f2:
+                    for line in f1:
+                        f2.write(line.lower())
+        return unigrams
+        
+
+    def __init__(self, alphabet=None, beam_size=None, pretrained_lm_path=None, vocab_path=None, **kwargs):
         """
         Args:
             alphabet (list): alphabet for language. If None, it will be
@@ -31,12 +46,22 @@ class CTCTextEncoder:
 
         self.ind2char = dict(enumerate(self.vocab))
         self.char2ind = {v: k for k, v in self.ind2char.items()}
-    
-        
+
         self.beamsearch_decoder = None
-        if beam_size is not None:
-            self.beamsearch_decoder = BeamSearchDecoderCTC(Alphabet(self.vocab, False), None)
+        if pretrained_lm_path is not None:
+            lower_lm_path = 'lower-3-gram.pruned.1e-7.arpa'
+            unigrams = self._lm_and_vocab_tolower(pretrained_lm_path, lower_lm_path, vocab_path)
+
+            self.beamsearch_decoder = build_ctcdecoder(
+                labels=self.vocab,
+                kenlm_model_path=lower_lm_path,
+                unigrams=unigrams,
+            )
             self.beam_size = beam_size
+        else:
+            if beam_size is not None:
+                self.beamsearch_decoder = BeamSearchDecoderCTC(Alphabet(self.vocab, False), None)
+                self.beam_size = beam_size
 
     def __len__(self):
         return len(self.vocab)
@@ -83,14 +108,14 @@ class CTCTextEncoder:
         probs = probs.detach().cpu().numpy()
         return self.beamsearch_decoder.decode(probs, self.beam_size)
     
-    def ctc_beam_search_decode_our(self, log_probs, beam_size=5):
+    def ctc_beam_search_decode_our(self, log_probs):
         probs = torch.exp(log_probs)
         dp = {
             ("", self.EMPTY_TOK): 1.0,
         }
         for prob in probs:
             dp = self._expand_and_merge_path(dp, prob)
-            dp = self._truncate_paths(dp, beam_size)
+            dp = self._truncate_paths(dp, self.beam_size)
         dp = [
             (prefix, proba)
             for (prefix, _), proba in sorted(dp.items(), key=lambda x: -x[1])

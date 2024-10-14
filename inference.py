@@ -48,7 +48,7 @@ def main(config):
             instantiate(metric_config, text_encoder=text_encoder)
         )
 
-    # save_path for model predictions
+    # save_path for model prediction
     save_path = ROOT_PATH / "data" / "saved" / config.inferencer.save_path
     save_path.mkdir(exist_ok=True, parents=True)
 

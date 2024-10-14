@@ -10,7 +10,7 @@
 
 ## About
 
-This repository contains a template for solving ASR task with PyTorch. This template branch is a part of the [HSE DLA course](https://github.com/markovka17/dla) ASR homework. Some parts of the code are missing (or do not follow the most optimal design choices...) and students are required to fill these parts themselves (as well as writing their own models, etc.).
+This repository contains my own implementation of DeepSpeech2 model for ASR task. This template branch is a part of the [HSE DLA course](https://github.com/markovka17/dla) ASR homework.
 
 See the task assignment [here](https://github.com/markovka17/dla/tree/2024/hw1_asr).
 
@@ -64,11 +64,37 @@ python3 train.py -cn=CONFIG_NAME HYDRA_CONFIG_ARGUMENTS
 
 Where `CONFIG_NAME` is a config from `src/configs` and `HYDRA_CONFIG_ARGUMENTS` are optional arguments.
 
-To run inference (evaluate the model or save predictions):
+То download best checkpoint, run the following command:
 
 ```bash
-python3 inference.py HYDRA_CONFIG_ARGUMENTS
+python3 download_checkpoint.py
 ```
+The checkpoint wil be downloaded to `src/model_weights`
+
+To run inference on best model (evaluate the model and save predictions), run the following command:
+
+```bash
+python3 inference.py datasets=inference inferencer.save_path=SAVE_PATH datasets.test.audio_dir=PATH_TO_DATA/audio datasets.test.transcription_dir=PATH_TO_DATA/transcriptions
+```
+The predictions will be saved to `data/saved/{SAVE_PATH}`
+
+
+To calculate metrics on particular set of predictions and groundtruths:
+
+```bash
+python3 metric_eval.py --pred_dir {PATH_TO_PREDS} --gt_dir {PATH_TO_GROUND_TRUTHS} 
+```
+
+## Final Metrics
+
+The metrics for best model with language model and beam search:
+
+```angular2html
+                WER     CER
+test_other     23.64    10.06
+test_clean     8.23     2.89
+```
+
 
 ## Credits
 

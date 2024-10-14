@@ -136,20 +136,20 @@ class Inferencer(BaseTrainer):
         # Some saving logic. This is an example
         # Use if you need to save predictions on disk
 
-        batch_size = batch["logits"].shape[0]
+        batch_size = batch["log_probs"].shape[0]
 
         for i in range(batch_size):
             # clone because of
             # https://github.com/pytorch/pytorch/issues/1995
             log_probs = batch["log_probs"][i].clone()
             lengths = batch["log_probs_length"][i].clone()
-            predicted_text = self.text_encoder.beam_search_ctc_decode(log_probs[:lengths])
+            predicted_text = self.text_encoder.ctc_beam_search_decode(log_probs[:lengths])
 
             audio_path = batch['audio_path'][i]
             audio_name = audio_path.split('/')[-1].split('.')[0]
 
             if self.save_path is not None:
-                pred_path = self.save_path / f'{audio_name}.txt'
+                pred_path = self.save_path / part / f'{audio_name}.txt'
                 with open(pred_path, 'x') as f:
                     f.write(predicted_text)
             
@@ -165,7 +165,6 @@ class Inferencer(BaseTrainer):
         Returns:
             logs (dict): metrics, calculated on the partition.
         """
-
         self.is_train = False
         self.model.eval()
 

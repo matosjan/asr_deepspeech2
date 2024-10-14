@@ -33,7 +33,7 @@ def collate_fn(dataset_items: list[dict]):
         list_text_enc_len.append(elem["text_encoded"].shape[1])
 
     batch_audio = pad_sequence(list_audio, batch_first=True).squeeze()
-    batch_spgram = pad_sequence(list_spgram, batch_first=True).squeeze().transpose(1, 2)
+    batch_spgram = pad_sequence(list_spgram, batch_first=True).squeeze(-1).transpose(1, 2)
     batch_text = list_text
     batch_text_enc = pad_sequence(list_text_enc, batch_first=True).squeeze()
     batch_path = list_path
