@@ -11,7 +11,7 @@ train:
           max_mask_len: 30
           p: 0
 
-  audio: 
+  audio:
     _target_: torchvision.transforms.v2.Compose
     transforms:
       - _target_: src.transforms.Gain

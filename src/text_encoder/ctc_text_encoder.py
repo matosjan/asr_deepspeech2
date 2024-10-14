@@ -2,9 +2,10 @@ import re
 from string import ascii_lowercase
 
 import torch
+from collections import defaultdict
+from pyctcdecode import Alphabet, BeamSearchDecoderCTC
 
-# TODO add CTC decode
-# TODO add BPE, LM, Beam Search support
+
 # Note: think about metrics and encoder
 # The design can be remarkably improved
 # to calculate stuff more efficiently and prettier
@@ -14,7 +15,8 @@ class CTCTextEncoder:
     EMPTY_TOK = ""
     EMPTY_IND = 0
 
-    def __init__(self, alphabet=None, **kwargs):
+
+    def __init__(self, alphabet=None, beam_size=None, **kwargs):
         """
         Args:
             alphabet (list): alphabet for language. If None, it will be
@@ -29,6 +31,12 @@ class CTCTextEncoder:
 
         self.ind2char = dict(enumerate(self.vocab))
         self.char2ind = {v: k for k, v in self.ind2char.items()}
+    
+        
+        self.beamsearch_decoder = None
+        if beam_size is not None:
+            self.beamsearch_decoder = BeamSearchDecoderCTC(Alphabet(self.vocab, False), None)
+            self.beam_size = beam_size
 
     def __len__(self):
         return len(self.vocab)
@@ -70,6 +78,42 @@ class CTCTextEncoder:
             last_char_ind = ind
 
         return "".join(decoded)
+    
+    def ctc_beam_search_decode(self, probs):
+        probs = probs.detach().cpu().numpy()
+        return self.beamsearch_decoder.decode(probs, self.beam_size)
+    
+    def ctc_beam_search_decode_our(self, log_probs, beam_size=5):
+        probs = torch.exp(log_probs)
+        dp = {
+            ("", self.EMPTY_TOK): 1.0,
+        }
+        for prob in probs:
+            dp = self._expand_and_merge_path(dp, prob)
+            dp = self._truncate_paths(dp, beam_size)
+        dp = [
+            (prefix, proba)
+            for (prefix, _), proba in sorted(dp.items(), key=lambda x: -x[1])
+        ]
+        return dp[0][0]
+
+    def _expand_and_merge_path(self, dp, next_token_probs):
+        new_dp = defaultdict(float)
+        for ind, next_token_prob in enumerate(next_token_probs):
+            cur_char = self.ind2char[ind]
+            for (prefix, last_char), v in dp.items():
+                if last_char == cur_char:
+                    new_prefix = prefix
+                else:
+                    if cur_char != self.EMPTY_TOK:
+                        new_prefix = prefix + cur_char
+                    else:
+                        new_prefix = prefix
+                new_dp[(new_prefix, cur_char)] += v * next_token_prob
+        return new_dp
+
+    def _truncate_paths(self, dp, beam_size):
+        return dict(sorted(list(dp.items()), key=lambda x: -x[1])[:beam_size])
 
     @staticmethod
     def normalize_text(text: str):

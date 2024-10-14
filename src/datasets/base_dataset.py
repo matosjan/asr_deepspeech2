@@ -83,13 +83,13 @@ class BaseDataset(Dataset):
         audio = self.load_audio(audio_path)
         text = data_dict["text"]
         text_encoded = self.text_encoder.encode(text)
-        
+
         instance_data = {
             "audio": audio,
         }
-        
+
         instance_data = self.preprocess_data(instance_data)
-        spectrogram = self.get_spectrogram(instance_data['audio'])
+        spectrogram = self.get_spectrogram(instance_data["audio"])
 
         instance_data.update(
             {
@@ -99,7 +99,6 @@ class BaseDataset(Dataset):
                 "audio_path": audio_path,
             }
         )
-        
 
         instance_data = self.preprocess_data(instance_data)
 

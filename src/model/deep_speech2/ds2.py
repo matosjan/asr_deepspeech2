@@ -5,7 +5,7 @@ from torch import Tensor, nn
 
 from src.model.deep_speech2.conv_module import ConvModule
 from src.model.deep_speech2.gru_block import GRUBlock
-from src.model.deep_speech2.utils import after_conv, apply_mask
+from src.model.deep_speech2.utils import len_after_conv
 
 
 class DeepSpeech2(nn.Module):
@@ -54,7 +54,7 @@ class DeepSpeech2(nn.Module):
         gru_input_size = n_feats
         for layer in self.conv_layers:
             if isinstance(layer, nn.Conv2d):
-                gru_input_size = after_conv(
+                gru_input_size = len_after_conv(
                     n_features=gru_input_size, conv=layer, dim=0
                 )
         gru_input_size *= 96

@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor, nn
 
-from src.model.deep_speech2.utils import after_conv, apply_mask
+from src.model.deep_speech2.utils import len_after_conv, form_and_apply_mask
 
 
 class ConvModule(nn.Module):
@@ -14,6 +14,6 @@ class ConvModule(nn.Module):
         for layer in self.layers:
             x = layer(x)
             if isinstance(layer, nn.Conv2d):
-                lengths = after_conv(n_features=lengths, conv=layer, dim=1)
-            x = apply_mask(x, lengths)
+                lengths = len_after_conv(n_features=lengths, conv=layer, dim=1)
+            x = form_and_apply_mask(x, lengths)
         return x, lengths

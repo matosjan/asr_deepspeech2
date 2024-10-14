@@ -1,8 +1,6 @@
 import torch
-from torch import Tensor, nn
 
-
-def after_conv(n_features: int | Tensor, conv: nn.Conv2d, dim: int):
+def len_after_conv(n_features, conv, dim):
     padding, kernel_size, stride = (
         conv.padding[dim],
         conv.kernel_size[dim],
@@ -13,7 +11,7 @@ def after_conv(n_features: int | Tensor, conv: nn.Conv2d, dim: int):
     return n_features
 
 
-def apply_mask(x, lengths):
+def form_and_apply_mask(x, lengths):
     mask = torch.arange(x.size(-1), device=x.device)[None, None, None, :].expand_as(x)
     mask = mask < lengths[:, None, None, None]
 

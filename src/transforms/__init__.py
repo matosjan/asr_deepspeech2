@@ -1,10 +1,4 @@
 from src.transforms.spec_augs import FrequencyMasking, TimeMasking
-from src.transforms.wav_augs import HighPassFilter, LowPassFilter, Gain
+from src.transforms.wav_augs import Gain, HighPassFilter, LowPassFilter
 
-__all__ = [
-    "FrequencyMasking",
-    "TimeMasking",
-    "HighPassFilter",
-    "LowPassFilter",
-    "Gain"
-]
+__all__ = ["FrequencyMasking", "TimeMasking", "HighPassFilter", "LowPassFilter", "Gain"]

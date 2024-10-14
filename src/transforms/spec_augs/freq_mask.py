@@ -2,6 +2,7 @@ import torch
 from torch import Tensor, nn
 from torchaudio import transforms
 
+
 class FrequencyMasking(nn.Module):
     def __init__(self, p, max_mask_len):
         super().__init__()

@@ -1,6 +1,7 @@
 import torch_audiomentations
 from torch import Tensor, nn
 
+
 class LowPassFilter(nn.Module):
     def __init__(self, p, min_cutoff_freq, max_cutoff_freq, sample_rate):
         super().__init__()

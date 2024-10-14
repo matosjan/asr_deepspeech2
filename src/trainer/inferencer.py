@@ -128,7 +128,7 @@ class Inferencer(BaseTrainer):
 
         outputs = self.model(**batch)
         batch.update(outputs)
-        
+
         if metrics is not None:
             for met in self.metrics["inference"]:
                 metrics.update(met.name, met(**batch))
@@ -137,26 +137,22 @@ class Inferencer(BaseTrainer):
         # Use if you need to save predictions on disk
 
         batch_size = batch["logits"].shape[0]
-        current_id = batch_idx * batch_size
 
         for i in range(batch_size):
             # clone because of
             # https://github.com/pytorch/pytorch/issues/1995
-            logits = batch["logits"][i].clone()
-            label = batch["labels"][i].clone()
-            pred_label = logits.argmax(dim=-1)
+            log_probs = batch["log_probs"][i].clone()
+            lengths = batch["log_probs_length"][i].clone()
+            predicted_text = self.text_encoder.beam_search_ctc_decode(log_probs[:lengths])
 
-            output_id = current_id + i
-
-            output = {
-                "pred_label": pred_label,
-                "label": label,
-            }
+            audio_path = batch['audio_path'][i]
+            audio_name = audio_path.split('/')[-1].split('.')[0]
 
             if self.save_path is not None:
-                # you can use safetensors or other lib here
-                torch.save(output, self.save_path / part / f"output_{output_id}.pth")
-
+                pred_path = self.save_path / f'{audio_name}.txt'
+                with open(pred_path, 'x') as f:
+                    f.write(predicted_text)
+            
         return batch
 
     def _inference_part(self, part, dataloader):
